@@ -41,7 +41,7 @@ def register(request):
             first_name=data["first_name"],
             last_name=data["last_name"],
             phone=data["phone"],
-            is_active=False  # User must activate via email
+            is_active=False 
         )
 
         activation_url = generate_activation_link(user, request)
@@ -79,7 +79,7 @@ def register(request):
             <p>– The CRISP AI Team</p>
             </div>
             <div class="footer">
-            © {data['first_name'].capitalize()}, CRISP AI – Powered by CrispVision<br>
+            © Powered by CRISP AI<br>
             <a href="https://crispai.crispvision.org" style="color:#002B5B;">Visit our website</a>
             </div>
         </div>
@@ -259,7 +259,7 @@ def activate(request, uidb64, token):
               </head>
               <body>
                 <div class="box">
-                  <h1>✅ Your account has been successfully activated!</h1>
+                  <h1>Your account has been successfully activated!</h1>
                   <p>You can now return to <a href="https://crispai.crispvision.org">CRISP AI</a> and log in.</p>
                 </div>
               </body>
