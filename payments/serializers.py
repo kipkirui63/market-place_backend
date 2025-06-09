@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import authenticate
-from .models import User
+from .models import User, Tool
 
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -11,3 +11,9 @@ class LoginSerializer(serializers.Serializer):
         if user is None:
             raise serializers.ValidationError("Invalid email or password")
         return user
+    
+    
+class ToolSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Tool
+        fields = ['id', 'name', 'description', 'price_id']

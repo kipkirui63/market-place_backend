@@ -11,7 +11,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth import authenticate
 from django.core.mail import EmailMultiAlternatives
 from .models import User, Tool, Subscription
-from .serializers import LoginSerializer
+from .serializers import LoginSerializer,ToolSerializer
 from .utils import generate_activation_link
 from django.utils.http import urlsafe_base64_decode
 from django.contrib.auth.tokens import default_token_generator
@@ -19,7 +19,6 @@ from django.utils.encoding import force_str
 from django.urls import reverse
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
-
 
 @api_view(["POST"])
 @permission_classes([AllowAny])
@@ -99,7 +98,6 @@ def register(request):
     except Exception as e:
         return Response({"error": str(e)}, status=400)
 
-
 @api_view(["GET"])
 @permission_classes([AllowAny])
 def activate(request, uidb64, token):
@@ -116,30 +114,27 @@ def activate(request, uidb64, token):
     else:
         return Response({"error": "Activation link is invalid or expired."}, status=400)
 
-
-@api_view(["POST"])
-@permission_classes([AllowAny])
+@api_view(['POST'])
 def login(request):
-    serializer = LoginSerializer(data=request.data)
-    if serializer.is_valid():
-        user = serializer.validated_data
-        if not user.is_active:
-            return Response({"error": "Account not activated."}, status=403)
+    email = request.data.get("email")
+    password = request.data.get("password")
 
+    user = authenticate(request, username=email, password=password)
+
+    if user is not None:
         refresh = RefreshToken.for_user(user)
         return Response({
             "refresh": str(refresh),
             "access": str(refresh.access_token),
             "user": {
-                "id": user.id,
                 "email": user.email,
                 "first_name": user.first_name,
                 "last_name": user.last_name,
-                "role": user.role
+                "role": user.role if hasattr(user, 'role') else '',
             }
         })
-    return Response(serializer.errors, status=400)
-
+    else:
+        return Response({"detail": "Invalid credentials"}, status=401)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -153,7 +148,6 @@ def check_subscription(request):
         "tools": tools
     })
 
-
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def agent_gateway(request):
@@ -162,20 +156,23 @@ def agent_gateway(request):
         return redirect("https://crispai.crispvision.org/agent-dashboard")
     return Response({"detail": "Unauthorized"}, status=403)
 
-
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 def create_checkout(request):
     user = request.user
-    tool_id = request.GET.get("tool_id")
+    tool_input = request.data.get("tool_id")
 
-    if not tool_id:
+    if not tool_input:
         return Response({"detail": "Missing tool_id"}, status=400)
 
     try:
-        tool = Tool.objects.get(id=tool_id)
+        # Check if the tool_input is a digit (numeric ID), otherwise use name
+        if str(tool_input).isdigit():
+            tool = Tool.objects.get(id=int(tool_input))
+        else:
+            tool = Tool.objects.get(name__iexact=tool_input)
 
-        if Subscription.objects.filter(user=user, tool=tool).exists():
+        if Subscription.objects.filter(user=user, tool=tool, status="active").exists():
             return Response({"detail": "Already subscribed"}, status=400)
 
         session = stripe.checkout.Session.create(
@@ -187,15 +184,16 @@ def create_checkout(request):
             }],
             mode='subscription',
             subscription_data={"trial_period_days": 7},
-            success_url="https://crispai.crispvision.org/market_place",
+             success_url="http://localhost:8080/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}",
             cancel_url="http://localhost:8080/cancel",
             metadata={"tool_id": str(tool.id)}
         )
         return Response({"checkout_url": session.url})
 
+    except Tool.DoesNotExist:
+        return Response({"detail": "Tool not found"}, status=404)
     except Exception as e:
         return Response({"error": str(e)}, status=500)
-
 
 @csrf_exempt
 def stripe_webhook(request):
@@ -226,3 +224,46 @@ def stripe_webhook(request):
             return HttpResponse(status=400)
 
     return HttpResponse(status=200)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def list_tools(request):
+    tools = Tool.objects.all()
+    serializer = ToolSerializer(tools, many=True)
+    return Response(serializer.data)
+
+
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def activate(request, uidb64, token):
+    try:
+        uid = urlsafe_base64_decode(uidb64).decode()
+        user = User.objects.get(pk=uid)
+    except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+        return HttpResponse("Invalid activation link", status=400)
+
+    if default_token_generator.check_token(user, token):
+        user.is_active = True
+        user.save()
+        return HttpResponse("""
+            <html>
+              <head>
+                <title>Account Activated</title>
+                <style>
+                  body { font-family: 'Segoe UI', sans-serif; text-align: center; background: #f5f7fb; padding: 60px; }
+                  .box { background: white; display: inline-block; padding: 40px 30px; border-radius: 8px; box-shadow: 0 0 15px rgba(0,0,0,0.1); }
+                  h1 { color: #2ecc71; }
+                  a { color: #002B5B; text-decoration: none; font-weight: bold; }
+                </style>
+              </head>
+              <body>
+                <div class="box">
+                  <h1>✅ Your account has been successfully activated!</h1>
+                  <p>You can now return to <a href="https://crispai.crispvision.org">CRISP AI</a> and log in.</p>
+                </div>
+              </body>
+            </html>
+        """)
+    else:
+        return HttpResponse("Invalid or expired activation link.", status=400)

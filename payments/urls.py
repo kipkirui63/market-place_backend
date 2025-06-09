@@ -9,4 +9,5 @@ urlpatterns = [
     path("stripe/webhook/", views.stripe_webhook),
     path("auth/check-subscription/", views.check_subscription),
     path("agent/gateway/", views.agent_gateway),
+    path("activate/<uidb64>/<token>/", views.activate, name="activate"),
 ]

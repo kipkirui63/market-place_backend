@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-b8a+_yt9ua1cu=p(4^_1q66w9i81=eo64f=6o=a05c@v1cur8f
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 
 # Application definition
@@ -43,13 +43,15 @@ INSTALLED_APPS = [
     'rest_framework',
     'payments',
     'rest_framework_simplejwt',
+    'corsheaders'
 ]
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
-    )
+    ),
 }
+
 
 
 
@@ -57,6 +59,7 @@ AUTH_USER_MODEL = 'payments.User'
 
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -65,6 +68,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:8000",
+    "http://127.0.0.1:8000",
+    "http://localhost:8080",
+    "http://127.0.0.1:8080",
+]
+
 
 ROOT_URLCONF = 'crisp_backend.urls'
 
@@ -159,4 +171,7 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'crispailtd@gmail.com'
 EMAIL_HOST_PASSWORD = 'qwceaosjdmbwgxut'
 DEFAULT_FROM_EMAIL = 'CRISP AI <your-email@example.com>'
+
+
+
 

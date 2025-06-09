@@ -6,10 +6,13 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, default='user')
     is_active = models.BooleanField(default=False)
 
+# models.py
 class Tool(models.Model):
-    name = models.CharField(max_length=255)
-    description = models.TextField(blank=True)
-    price_id = models.CharField(max_length=255)
+    name = models.CharField(max_length=100)
+    description = models.TextField()
+    price_id = models.CharField(max_length=200) 
+    is_active = models.BooleanField(default=True)
+
 
 class Subscription(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
