@@ -17,3 +17,6 @@ class ToolSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tool
         fields = ['id', 'name', 'description', 'price_id']
+
+
+        

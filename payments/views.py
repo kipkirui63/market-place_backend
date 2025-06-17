@@ -267,3 +267,49 @@ def activate(request, uidb64, token):
         """)
     else:
         return HttpResponse("Invalid or expired activation link.", status=400)
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def cancel_subscription(request):
+    user = request.user
+    tool_id = request.data.get("tool_id")
+    
+    if not tool_id:
+        return Response({"detail": "tool_id is required"}, status=400)
+    
+    try:
+        # Find the active subscription
+        subscription = Subscription.objects.get(
+            user=user,
+            tool_id=tool_id,
+            status="active"
+        )
+        
+        # Update the subscription status to canceled
+        subscription.status = "canceled"
+        subscription.save()
+        
+        return Response({"detail": "Subscription canceled successfully"})
+        
+    except Subscription.DoesNotExist:
+        return Response({"detail": "Active subscription not found"}, status=404)
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
+    
+@api_view(["GET"])
+@permission_classes([IsAuthenticated])
+def my_subscriptions(request):
+    user = request.user
+    subscriptions = Subscription.objects.filter(user=user)
+    
+    data = [{
+        "id": sub.id,
+        "tool": sub.tool.name,
+        "tool_id": sub.tool.id,
+        "status": sub.status,
+        "created_at": sub.created_at,
+        "updated_at": sub.updated_at
+    } for sub in subscriptions]
+    
+    return Response(data)
