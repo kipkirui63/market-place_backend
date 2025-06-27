@@ -48,44 +48,104 @@ def register(request):
 
         html_body = f"""
         <!DOCTYPE html>
-        <html>
-        <head><meta charset="UTF-8"><title>Welcome to CRISP AI</title>
-        <style>
-            body {{
-            margin: 0; padding: 0;
-            background: linear-gradient(to bottom right, #f2f6fc, #e8f0fe);
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Welcome to CRISPAI</title>
+    <style>
+        body {{
+            margin: 0;
+            padding: 20px;
+            background: #f8fafc;
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             color: #333;
-            }}
-            .container {{ max-width: 600px; margin: 40px auto; background: white; border-radius: 10px; box-shadow: 0 0 10px rgba(0,0,0,0.05); }}
-            .header {{ background-color: #002B5B; padding: 20px; text-align: center; }}
-            .header img {{ max-width: 180px; }}
-            .content {{ padding: 30px; }}
-            h1 {{ color: #002B5B; font-size: 24px; }}
-            p {{ font-size: 16px; line-height: 1.6; }}
-            .footer {{ text-align: center; padding: 20px; font-size: 13px; color: #777; }}
-        </style>
-        </head>
-        <body>
-        <div class="container">
-            <div class="header">
+        }}
+        .container {{
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            overflow: hidden;
+        }}
+        .banner {{
+            background: #f1f5f9;
+            padding: 30px 20px;
+            text-align: center;
+            border-bottom: 1px solid #e2e8f0;
+        }}
+        .banner img {{
+            max-width: 180px;
+            height: auto;
+        }}
+        .content {{
+            padding: 40px 30px;
+            text-align: center;
+        }}
+        h1 {{
+            color: #002B5B;
+            font-size: 26px;
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }}
+        p {{
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            color: #4a5568;
+        }}
+        .button-container {{
+            margin: 32px 0;
+        }}
+        .activate-button {{
+            background-color: #002B5B;
+            color: white;
+            padding: 14px 28px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: 600;
+            display: inline-block;
+            font-size: 16px;
+        }}
+        .footer {{
+            text-align: center;
+            padding: 24px;
+            font-size: 13px;
+            color: #718096;
+            border-top: 1px solid #edf2f7;
+            background: #f8fafc;
+        }}
+        .footer a {{
+            color: #002B5B;
+            text-decoration: none;
+            font-weight: 500;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="banner">
             <img src="https://crispai.crispvision.org/media/crisp-logo.png" alt="CRISP AI Logo">
-            </div>
-            <div class="content">
-            <h1>Hi {data['first_name']}, Welcome to CRISP AI 🎉</h1>
-            <p>We’re excited to have you on board!</p>
-            <p>Click the button below to activate your account:</p>
-            <p><a href="{activation_url}" style="background-color:#002B5B;color:white;padding:10px 20px;text-decoration:none;border-radius:5px;">Activate Account</a></p>
-            <p>– The CRISP AI Team</p>
-            </div>
-            <div class="footer">
-            © Powered by CRISP AI<br>
-            <a href="https://crispai.crispvision.org" style="color:#002B5B;">Visit our website</a>
-            </div>
         </div>
-        </body>
-        </html>
+        <div class="content">
+            <h1>Hi {data['first_name']}, Welcome to CrispAI</h1>
+            <p>We're excited to have you on board!</p>
+            <p>Click the button below to activate your account:</p>
+            <div class="button-container">
+                <a href="{activation_url}" class="activate-button">Activate Account</a>
+            </div>
+            <p>If you didn't request this, please ignore this email.</p>
+        </div>
+        <div class="footer">
+            © 2024 CrispAI. All rights reserved.<br>
+            <a href="https://www.crispai.ca/">Visit our website</a> | <a href="mailto:support@crispai.ca">Contact Support</a>
+        </div>
+    </div>
+</body>
+</html>
         """
+
 
         subject = "🎉 Welcome to CRISP AI – Let’s Build the Future Together!"
         text_body = f"Hi {data['first_name']},\n\nClick the link below to activate your account:\n\n{activation_url}"
@@ -184,7 +244,7 @@ def create_checkout(request):
             }],
             mode='subscription',
             subscription_data={"trial_period_days": 7},
-             success_url="http://localhost:8080/dashboard?status=success&session_id={CHECKOUT_SESSION_ID}",
+             success_url="https://marketplace.crispai.ca/?status=success&session_id={CHECKOUT_SESSION_ID}",
             cancel_url="http://localhost:8080/cancel",
             metadata={"tool_id": str(tool.id)}
         )
